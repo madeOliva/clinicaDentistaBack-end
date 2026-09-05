@@ -7,7 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { User, UserDocument } from './schema/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from './enums/role.enum';
@@ -30,21 +30,28 @@ export class AuthService {
       email: dto.email,
       password: hashedPassword,
       name: dto.name,
-      role: dto.role ?? Role.USER,
+      role: Role.USER,
     });
 
     const user = created.toObject();
-    delete user.password;
 
     return {
       message: 'Usuario registrado correctamente',
       user,
-      access_token: this.signToken(user._id.toString(), user.email, user.role),
+      access_token: this.signToken(
+        user._id.toString(),
+        user.email,
+        user.role,
+        user.isSuperAdmin,
+      ),
     };
   }
 
   async login(dto: LoginDto) {
-    const user = await this.userModel.findOne({ email: dto.email }).exec();
+    const user = await this.userModel
+      .findOne({ email: dto.email })
+      .select('+password')
+      .exec();
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
@@ -60,22 +67,31 @@ export class AuthService {
     return {
       message: 'Inicio de sesión exitoso',
       user: payload,
-      access_token: this.signToken(user._id.toString(), user.email, user.role),
+      access_token: this.signToken(
+        user._id.toString(),
+        user.email,
+        user.role,
+        user.isSuperAdmin,
+      ),
     };
   }
 
   async profile(userId: string) {
-    const user = await this.userModel
-      .findById(userId)
-      .select('-password')
-      .exec();
+    const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
     return user;
   }
 
-  private signToken(sub: string, email: string, role: string): string {
-    return this.jwtService.sign({ email, role }, { subject: sub });
+  private signToken(
+    sub: string,
+    email: string,
+    role: string,
+    isSuperAdmin: boolean,
+  ): string {
+    return this.jwtService.sign({ email, role, isSuperAdmin }, {
+      subject: sub,
+    });
   }
 }

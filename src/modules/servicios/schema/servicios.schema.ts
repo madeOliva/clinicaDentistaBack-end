@@ -16,8 +16,8 @@ export class Servicios {
     @Prop({ required: true, unique: true })
     precioServicio!: number;
 
-    @Prop({ required: true, unique: true, })
-    monedaServicio!: string;
+    @Prop({ required: true, type: Types.ObjectId, ref: 'Moneda', })
+    monedaServicio!: Types.ObjectId
 }
 
 export const ServiciosSchema = SchemaFactory.createForClass(Servicios);

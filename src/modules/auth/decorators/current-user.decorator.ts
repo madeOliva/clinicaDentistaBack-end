@@ -4,6 +4,7 @@ export interface ActiveUser {
   userId: string;
   email: string;
   role: string;
+  isSuperAdmin: boolean;
 }
 
 export const CurrentUser = createParamDecorator(
