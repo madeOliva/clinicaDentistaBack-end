@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsMongoId, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { Types } from "mongoose";
 
 export class CreateServicioDto {
 
@@ -15,7 +16,7 @@ export class CreateServicioDto {
     @IsNotEmpty()
     precioServicio!: number;
 
-    @IsString()
+    @IsMongoId()
     @IsNotEmpty()
-    monedaServicio!: string;
+    monedaServicio!: Types.ObjectId;
 }

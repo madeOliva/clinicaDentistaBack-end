@@ -3,7 +3,7 @@ import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cita } from './schema/cita.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class CitaService {
@@ -15,6 +15,14 @@ export class CitaService {
     async create(
       createCitaDto: CreateCitaDto,
     ): Promise<Cita> {
+      if (!Types.ObjectId.isValid(createCitaDto.cliente)) {
+        throw new BadRequestException('El ID del cliente no es válido');
+      }
+
+      if (!Types.ObjectId.isValid(createCitaDto.servicio)) {
+        throw new BadRequestException('El ID del servicio no es válido');
+      }
+
       const existCita = await this.citaModel.findOne({
         fecha: createCitaDto.fecha,
       });
