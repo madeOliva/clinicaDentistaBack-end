@@ -16,7 +16,7 @@ export class ClienteService {
       createClienteDto: CreateClienteDto,
     ): Promise<Cliente> {
       const existCliente = await this.clienteModel.findOne({
-        email: createClienteDto.email,
+        ci: createClienteDto.ci,
       });
 
       if (existCliente) {

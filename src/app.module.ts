@@ -8,6 +8,7 @@ import { ServiciosModule } from './modules/servicios/servicios.module';
 import { CitaModule } from './modules/cita/cita.module';
 import { ClienteModule } from './modules/cliente/cliente.module';
 import { MonedaModule } from './modules/moneda/moneda.module';
+import { ConfiguracionModule } from './modules/configuracion/configuracion.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MonedaModule } from './modules/moneda/moneda.module';
     CitaModule,
     ClienteModule,
     MonedaModule,
+    ConfiguracionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,10 +3,10 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateClienteDto {
 
-    @ApiProperty({ example: 'cliente@correo.com' })
+    @ApiProperty({ example: '03074563666' })
     @IsString()
     @IsNotEmpty()
-    email!: string;
+    ci!: string;
 
     @ApiProperty({ example: 'Juan' })
     @IsString()
