@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ServiciosModule } from './modules/servicios/servicios.module';
 import { CitaModule } from './modules/cita/cita.module';
 import { ClienteModule } from './modules/cliente/cliente.module';
+import { MonedaModule } from './modules/moneda/moneda.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ClienteModule } from './modules/cliente/cliente.module';
     ServiciosModule,
     CitaModule,
     ClienteModule,
+    MonedaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
