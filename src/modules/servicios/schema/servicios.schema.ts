@@ -13,7 +13,7 @@ export class Servicios {
     @Prop({ required: true, unique: true })
     descripcionServicio!: string;
 
-    @Prop({ required: true, unique: true })
+    @Prop({ required: true })
     precioServicio!: number;
 
     @Prop({ type: Boolean, default: true })
