@@ -45,6 +45,15 @@ export class ClienteService {
     return cli;
    }
 
+   // Buscar un cliente por CI
+    async findByCi(ci: string): Promise<Cliente> {
+    const cli = await this.clienteModel.findOne({ ci }).exec();
+    if (!cli){
+      throw new NotFoundException('No se encontró el cliente');
+    }
+    return cli;
+   }
+
 
 
    //Actualizar un cliente

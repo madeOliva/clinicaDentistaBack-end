@@ -9,6 +9,7 @@ import { CitaModule } from './modules/cita/cita.module';
 import { ClienteModule } from './modules/cliente/cliente.module';
 import { MonedaModule } from './modules/moneda/moneda.module';
 import { ConfiguracionModule } from './modules/configuracion/configuracion.module';
+import { DiasInhabilitadosModule } from './modules/dias-inhabilitados/dias-inhabilitados.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ConfiguracionModule } from './modules/configuracion/configuracion.modul
     ClienteModule,
     MonedaModule,
     ConfiguracionModule,
+    DiasInhabilitadosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

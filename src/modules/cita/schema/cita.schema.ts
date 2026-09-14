@@ -12,7 +12,7 @@ export class Cita {
     @Prop({ required: true, type: Types.ObjectId, ref: 'Servicios', })
     servicio!: Types.ObjectId;
 
-    @Prop({ required: true, unique: true })
+    @Prop({ required: true })
     fecha!: Date;
 }
 

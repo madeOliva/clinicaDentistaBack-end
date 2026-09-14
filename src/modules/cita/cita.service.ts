@@ -25,10 +25,11 @@ export class CitaService {
 
       const existCita = await this.citaModel.findOne({
         fecha: createCitaDto.fecha,
+        cliente: createCitaDto.cliente,
       });
 
       if (existCita) {
-        throw new BadRequestException('Ya existe la cita para esta fecha');
+        throw new BadRequestException('Ya tienes una cita registrada para esta fecha');
       }
       const nuevaCita = new this.citaModel(createCitaDto);
       return nuevaCita.save();

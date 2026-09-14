@@ -27,6 +27,14 @@ export class ClienteController {
     return this.clienteService.findAll();
   }
 
+  @ApiOperation({ summary: 'Obtener un cliente por su CI' })
+  @ApiResponse({ status: 200, description: 'Cliente obtenido con exito' })
+  @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
+  @Get('ci/:ci')
+  findByCi(@Param('ci') ci: string) {
+    return this.clienteService.findByCi(ci);
+  }
+
   @ApiOperation({ summary: 'Obtener un cliente' })
   @ApiResponse({ status: 201, description: 'Cliente obtenido con exito' })
   @ApiResponse({ status: 400, description: 'Bad request' })
