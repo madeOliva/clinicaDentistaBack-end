@@ -1,4 +1,4 @@
-import { IsMongoId, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { Types } from "mongoose";
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -18,6 +18,11 @@ export class CreateServicioDto {
     @IsNumber()
     @IsNotEmpty()
     precioServicio!: number;
+
+    @ApiProperty({ example: true })
+    @IsBoolean()
+    @IsOptional()
+    disponible?: boolean;
 
     @ApiProperty({ example: '6655f0c9a1b2c3d4e5f6a7b8' })
     @IsMongoId()

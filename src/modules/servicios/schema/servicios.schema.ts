@@ -16,6 +16,9 @@ export class Servicios {
     @Prop({ required: true, unique: true })
     precioServicio!: number;
 
+    @Prop({ type: Boolean, default: true })
+    disponible!: boolean;
+
     @Prop({ required: true, type: Types.ObjectId, ref: 'Moneda', })
     monedaServicio!: Types.ObjectId
 }
