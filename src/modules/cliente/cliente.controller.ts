@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ClienteService } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { CiParamDto } from './dto/ci-param.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 
@@ -31,8 +32,8 @@ export class ClienteController {
   @ApiResponse({ status: 200, description: 'Cliente obtenido con exito' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
   @Get('ci/:ci')
-  findByCi(@Param('ci') ci: string) {
-    return this.clienteService.findByCi(ci);
+  findByCi(@Param() params: CiParamDto) {
+    return this.clienteService.findByCi(params.ci);
   }
 
   @ApiOperation({ summary: 'Obtener un cliente' })
