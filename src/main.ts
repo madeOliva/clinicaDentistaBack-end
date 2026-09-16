@@ -16,7 +16,14 @@ async function bootstrap() {
 
   // Configuracion de CORS para permitir solicitudes desde el frontend
   app.enableCors({
-    origin: ['http://localhost:5173'],
+    origin: (origin, callback) => {
+      // Permite cualquier origen local en desarrollo (localhost/127.0.0.1 con cualquier puerto)
+      if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origen no permitido por CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
     credentials: true,
