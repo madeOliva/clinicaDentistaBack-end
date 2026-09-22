@@ -9,14 +9,14 @@ import {
 export function esCiValida(ci: string): boolean {
   if (!/^\d{11}$/.test(ci)) return false;
 
-  const primerDigito = Number(ci[0]);
-  const mes = Number(ci.slice(1, 3));
-  const dia = Number(ci.slice(3, 5));
-  const anioCorto = Number(ci.slice(5, 7));
+  const anioCorto = Number(ci.slice(0, 2));
+  const mes = Number(ci.slice(2, 4));
+  const dia = Number(ci.slice(4, 6));
 
-  if (primerDigito < 1 || primerDigito > 9 || mes < 1 || mes > 12) return false;
+  if (mes < 1 || mes > 12) return false;
 
-  const siglo = primerDigito === 3 || primerDigito === 4 ? 2000 : 1900;
+  const anioActual = new Date().getFullYear();
+  const siglo = anioCorto > anioActual % 100 ? 1900 : 2000;
   const anioCompleto = siglo + anioCorto;
   const diasEnMes = new Date(anioCompleto, mes, 0).getDate();
 

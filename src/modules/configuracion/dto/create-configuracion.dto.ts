@@ -2,8 +2,10 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -65,4 +67,10 @@ export class CreateConfiguracionDto {
   @ValidateNested({ each: true })
   @Type(() => HorarioDto)
   schedule?: HorarioDto[];
+
+  @ApiPropertyOptional({ example: 10, description: 'Cantidad máxima de citas que se pueden reservar en un día' })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  maxCitasPorDia?: number;
 }

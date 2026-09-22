@@ -4,11 +4,15 @@ import { UpdateCitaDto } from './dto/update-cita.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cita } from './schema/cita.schema';
 import { Model, Types } from 'mongoose';
+import { ConfiguracionService } from '../configuracion/configuracion.service';
 
 @Injectable()
 export class CitaService {
 
-  constructor(@InjectModel(Cita.name) private citaModel: Model<Cita>) {
+  constructor(
+    @InjectModel(Cita.name) private citaModel: Model<Cita>,
+    private readonly configuracionService: ConfiguracionService,
+  ) {
     }
 
   //Crear una cita
@@ -31,6 +35,19 @@ export class CitaService {
       if (existCita) {
         throw new BadRequestException('Ya tienes una cita registrada para esta fecha');
       }
+
+      const dia = createCitaDto.fecha.slice(0, 10);
+      const inicio = new Date(`${dia}T00:00:00.000Z`);
+      const fin = new Date(inicio.getTime() + 86400000);
+      const [conteo, config] = await Promise.all([
+        this.citaModel.countDocuments({ fecha: { $gte: inicio, $lt: fin } }),
+        this.configuracionService.encontrar(),
+      ]);
+      const maximo = config.maxCitasPorDia || 10;
+      if (conteo >= maximo) {
+        throw new BadRequestException('Se alcanzó el límite de citas para esta fecha');
+      }
+
       const nuevaCita = new this.citaModel(createCitaDto);
       return nuevaCita.save();
     }

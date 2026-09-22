@@ -19,6 +19,7 @@ const VALORES_POR_DEFECTO: CreateConfiguracionDto = {
     { days: 'Sábado', hours: '8:00 AM – 1:00 PM' },
     { days: 'Domingo', hours: 'Cerrado' },
   ],
+  maxCitasPorDia: 10,
 };
 
 @Injectable()

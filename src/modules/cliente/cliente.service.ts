@@ -20,7 +20,7 @@ export class ClienteService {
       });
 
       if (existCliente) {
-        throw new BadRequestException('Ya existe el cliente con ese email');
+        throw new BadRequestException('Ya existe un cliente con ese carné de identidad');
       }
       const nuevoCliente = new this.clienteModel(createClienteDto);
       return nuevoCliente.save();

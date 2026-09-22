@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, Matches } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, Matches, IsInt, Min, Max } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsCiValida } from "./ci-validator";
 
@@ -27,6 +27,13 @@ export class CreateClienteDto {
     @IsNotEmpty()
     @Matches(/^[0-9+\s-]+$/, { message: 'El teléfono solo debe contener números' })
     telefono!: string;
+
+    @ApiPropertyOptional({ example: 32 })
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    @Max(120)
+    edad?: number;
 
     @ApiPropertyOptional({ example: 'Av. Los Olivos 123' })
     @IsOptional()

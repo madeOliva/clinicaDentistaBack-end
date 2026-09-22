@@ -31,6 +31,9 @@ export class Configuracion {
 
   @Prop({ type: [{ days: String, hours: String }], _id: false, default: [] })
   schedule: { days: string; hours: string }[];
+
+  @Prop({ type: Number, default: 10, min: 1 })
+  maxCitasPorDia: number;
 }
 
 export const ConfiguracionSchema = SchemaFactory.createForClass(Configuracion);

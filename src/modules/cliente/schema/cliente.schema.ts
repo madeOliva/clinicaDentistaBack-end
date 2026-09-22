@@ -27,6 +27,9 @@ export class Cliente {
     telefono!: string;
 
     @Prop()
+    edad?: number;
+
+    @Prop()
     direccion?: string;
 }
 

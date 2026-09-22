@@ -12,5 +12,6 @@ import { ConfiguracionController } from './configuracion.controller';
   ],
   controllers: [ConfiguracionController],
   providers: [ConfiguracionService],
+  exports: [ConfiguracionService, MongooseModule],
 })
 export class ConfiguracionModule {}
