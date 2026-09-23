@@ -4,7 +4,7 @@ import { ConfiguracionService } from './configuracion.service';
 import { CreateConfiguracionDto } from './dto/create-configuracion.dto';
 import { UpdateConfiguracionDto } from './dto/update-configuracion.dto';
 
-@ApiTags('Configuracion')
+@ApiTags('configuracion')
 @Controller('configuracion')
 export class ConfiguracionController {
   constructor(private readonly configuracionService: ConfiguracionService) {}
