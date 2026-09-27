@@ -16,30 +16,30 @@ export class SuperAdminSeeder implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const email = this.configService.get<string>('SUPERADMIN_EMAIL');
+    const telefono = this.configService.get<string>('SUPERADMIN_TELEFONO');
     const password = this.configService.get<string>('SUPERADMIN_PASSWORD');
 
-    if (!email || !password) {
+    if (!telefono || !password) {
       this.logger.warn(
-        'SUPERADMIN_EMAIL/SUPERADMIN_PASSWORD no configurados. No se creó superadmin.',
+        'SUPERADMIN_TELEFONO/SUPERADMIN_PASSWORD no configurados. No se creó superadmin.',
       );
       return;
     }
 
-    const existing = await this.userModel.findOne({ email }).exec();
+    const existing = await this.userModel.findOne({ telefono }).exec();
     if (existing) {
       return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await this.userModel.create({
-      email,
+      telefono,
       password: hashedPassword,
-      name: this.configService.get<string>('SUPERADMIN_NAME') ?? 'Super Admin',
+      nombre: this.configService.get<string>('SUPERADMIN_NAME') ?? 'Super Admin',
       role: Role.ADMIN,
       isSuperAdmin: true,
     });
 
-    this.logger.log(`SuperAdmin creado por defecto: ${email}`);
+    this.logger.log(`SuperAdmin creado por defecto: ${telefono}`);
   }
 }

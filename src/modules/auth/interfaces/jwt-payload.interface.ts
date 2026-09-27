@@ -1,6 +1,6 @@
 export interface JwtPayload {
   sub: string;
-  email: string;
+  telefono: string;
   role: string;
   isSuperAdmin: boolean;
 }

@@ -2,7 +2,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export interface ActiveUser {
   userId: string;
-  email: string;
+  telefono: string;
   role: string;
   isSuperAdmin: boolean;
 }

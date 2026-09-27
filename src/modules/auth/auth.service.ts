@@ -20,27 +20,28 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const existing = await this.userModel.findOne({ email: dto.email });
+    const existing = await this.userModel.findOne({ telefono: dto.telefono });
     if (existing) {
-      throw new ConflictException('El correo ya está registrado');
+      throw new ConflictException('El teléfono ya está registrado');
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const created = await this.userModel.create({
-      email: dto.email,
+      telefono: dto.telefono,
       password: hashedPassword,
-      name: dto.name,
-      role: Role.USER,
+      nombre: dto.nombre,
+      role: dto.role ?? Role.USER,
     });
 
     const user = created.toObject();
+    delete (user as Partial<typeof user>).password;
 
     return {
       message: 'Usuario registrado correctamente',
       user,
       access_token: this.signToken(
         user._id.toString(),
-        user.email,
+        user.telefono,
         user.role,
         user.isSuperAdmin,
       ),
@@ -49,7 +50,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.userModel
-      .findOne({ email: dto.email })
+      .findOne({ telefono: dto.telefono })
       .select('+password')
       .exec();
     if (!user) {
@@ -62,14 +63,14 @@ export class AuthService {
     }
 
     const payload = user.toObject();
-    delete payload.password;
+    delete (payload as Partial<typeof payload>).password;
 
     return {
       message: 'Inicio de sesión exitoso',
       user: payload,
       access_token: this.signToken(
         user._id.toString(),
-        user.email,
+        user.telefono,
         user.role,
         user.isSuperAdmin,
       ),
@@ -81,16 +82,19 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
-    return user;
+
+    const result = user.toObject();
+    delete (result as Partial<typeof result>).password;
+    return result;
   }
 
   private signToken(
     sub: string,
-    email: string,
+    telefono: string,
     role: string,
     isSuperAdmin: boolean,
   ): string {
-    return this.jwtService.sign({ email, role, isSuperAdmin }, {
+    return this.jwtService.sign({ telefono, role, isSuperAdmin }, {
       subject: sub,
     });
   }

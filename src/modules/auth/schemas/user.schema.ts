@@ -7,14 +7,19 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema({ timestamps: true, versionKey: false })
 export class User {
-  @Prop({ required: true, unique: true, trim: true, lowercase: true })
-  email: string;
+  @Prop({
+    required: true,
+    unique: true,
+    trim: true,
+    match: [/^[0-9+\s-]+$/, 'El teléfono solo debe contener números'],
+  })
+  telefono: string;
 
   @Prop({ required: true, minlength: 6, select: false })
   password: string;
 
   @Prop({ required: true, trim: true })
-  name: string;
+  nombre: string;
 
   @Prop({ type: String, enum: Role, default: Role.USER })
   role: Role;
