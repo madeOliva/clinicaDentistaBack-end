@@ -10,6 +10,8 @@ import { ClienteModule } from './modules/cliente/cliente.module';
 import { MonedaModule } from './modules/moneda/moneda.module';
 import { ConfiguracionModule } from './modules/configuracion/configuracion.module';
 import { DiasInhabilitadosModule } from './modules/dias-inhabilitados/dias-inhabilitados.module';
+import { ProductosModule } from './modules/producto/productos.module';
+
 
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { DiasInhabilitadosModule } from './modules/dias-inhabilitados/dias-inhab
     MonedaModule,
     ConfiguracionModule,
     DiasInhabilitadosModule,
+    ProductosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
