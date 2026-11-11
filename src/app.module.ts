@@ -11,6 +11,7 @@ import { MonedaModule } from './modules/moneda/moneda.module';
 import { ConfiguracionModule } from './modules/configuracion/configuracion.module';
 import { DiasInhabilitadosModule } from './modules/dias-inhabilitados/dias-inhabilitados.module';
 import { ProductosModule } from './modules/producto/productos.module';
+import { CategoriasModule } from './modules/categoria/categoria.module';
 
 
 @Module({
@@ -26,6 +27,7 @@ import { ProductosModule } from './modules/producto/productos.module';
     }),
     AuthModule,
     ServiciosModule,
+    CategoriasModule,
     CitaModule,
     ClienteModule,
     MonedaModule,
