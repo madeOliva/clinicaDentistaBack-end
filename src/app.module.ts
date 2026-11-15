@@ -13,6 +13,7 @@ import { DiasInhabilitadosModule } from './modules/dias-inhabilitados/dias-inhab
 import { ProductosModule } from './modules/producto/productos.module';
 import { CategoriasModule } from './modules/categoria/categoria.module';
 import { MovimientosModule } from './modules/movimientos/movimientos.module';
+import { ComprasModule } from './modules/compras/compras.module';
 
 
 @Module({
@@ -31,6 +32,7 @@ import { MovimientosModule } from './modules/movimientos/movimientos.module';
     CategoriasModule,
     CitaModule,
     ClienteModule,
+    ComprasModule,
     MonedaModule,
     ConfiguracionModule,
     DiasInhabilitadosModule,
