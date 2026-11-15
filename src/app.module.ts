@@ -12,6 +12,7 @@ import { ConfiguracionModule } from './modules/configuracion/configuracion.modul
 import { DiasInhabilitadosModule } from './modules/dias-inhabilitados/dias-inhabilitados.module';
 import { ProductosModule } from './modules/producto/productos.module';
 import { CategoriasModule } from './modules/categoria/categoria.module';
+import { MovimientosModule } from './modules/movimientos/movimientos.module';
 
 
 @Module({
@@ -34,6 +35,7 @@ import { CategoriasModule } from './modules/categoria/categoria.module';
     ConfiguracionModule,
     DiasInhabilitadosModule,
     ProductosModule,
+    MovimientosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
