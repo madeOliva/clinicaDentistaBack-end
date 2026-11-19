@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { CitaService } from './cita.service';
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 
 @ApiTags('Cita')
@@ -17,6 +17,15 @@ export class CitaController {
   create(@Body() createCitaDto: CreateCitaDto) {
     return this.citaService.create(createCitaDto);
   }
+
+
+  @Patch(':id/realizar')
+  @ApiOperation({ summary: 'Marcar una cita como realizada y descontar materiales' })
+  @ApiParam({ name: 'id', description: 'ID de la cita' })
+  async realizar(@Param('id') id: string) {
+    return this.citaService.realizar(id)
+  }
+
 
 
   @ApiOperation({ summary: 'Obtener todas las citas' })
