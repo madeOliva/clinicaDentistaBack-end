@@ -1,4 +1,3 @@
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument, Types } from 'mongoose'
 
@@ -50,6 +49,9 @@ export class Cita {
 
   @Prop({ required: true })
   fecha!: Date
+
+  @Prop({ type: Boolean, default: false })
+  procesandoRealizacion!: boolean
 
   @Prop({
     type: String,

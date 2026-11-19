@@ -3,7 +3,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common'
+
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 
@@ -33,7 +35,7 @@ export class CitaService {
     private readonly productosModel: Model<Productos>,
 
     private readonly configuracionService: ConfiguracionService,
-  ) { }
+  ) {}
 
   // Crear una cita
   async create(createCitaDto: CreateCitaDto): Promise<Cita> {
@@ -76,6 +78,7 @@ export class CitaService {
     }
 
     const nuevaCita = new this.citaModel(createCitaDto)
+
     return nuevaCita.save()
   }
 
@@ -103,7 +106,6 @@ export class CitaService {
   }
 
   // Actualizar una cita
-
   async update(
     id: string,
     updateCitaDto: UpdateCitaDto,
@@ -118,32 +120,40 @@ export class CitaService {
       throw new NotFoundException('No se encontró la cita')
     }
 
-    if (cita.estadoAtencion === EstadoAtencion.REALIZADA) {
-      if (
-        updateCitaDto.cliente ||
-        updateCitaDto.servicio ||
-        updateCitaDto.fecha
-      ) {
-        throw new BadRequestException(
-          'No puedes modificar el cliente, servicio o fecha de una cita realizada',
-        )
-      }
-    }
-
-    if (
-      updateCitaDto.estadoPago === EstadoPago.PAGADO &&
-      cita.estadoAtencion !== EstadoAtencion.REALIZADA
-    ) {
+    if (cita.procesandoRealizacion) {
       throw new BadRequestException(
-        'No puedes registrar el pago de un servicio que todavía no se ha realizado',
+        'No puedes modificar una cita mientras se está realizando',
       )
     }
 
-    Object.assign(cita, updateCitaDto)
+    const intentaModificarDatos =
+      updateCitaDto.cliente !== undefined ||
+      updateCitaDto.servicio !== undefined ||
+      updateCitaDto.fecha !== undefined
+
+    if (
+      cita.estadoAtencion === EstadoAtencion.REALIZADA &&
+      intentaModificarDatos
+    ) {
+      throw new BadRequestException(
+        'No puedes modificar el cliente, servicio o fecha de una cita realizada',
+      )
+    }
+
+    if (updateCitaDto.cliente !== undefined) {
+      cita.cliente = new Types.ObjectId(updateCitaDto.cliente)
+    }
+
+    if (updateCitaDto.servicio !== undefined) {
+      cita.servicio = new Types.ObjectId(updateCitaDto.servicio)
+    }
+
+    if (updateCitaDto.fecha !== undefined) {
+      cita.fecha = new Date(updateCitaDto.fecha)
+    }
 
     return cita.save()
   }
-
 
   // Marcar una cita como realizada y descontar materiales
   async realizar(id: string): Promise<Cita> {
@@ -151,122 +161,320 @@ export class CitaService {
       throw new BadRequestException('El ID de la cita no es válido')
     }
 
-    const session = await this.citaModel.db.startSession()
-    let resultado: any = null
+    // Reservar la cita para evitar realizaciones simultáneas
+    const cita = await this.citaModel
+      .findOneAndUpdate(
+        {
+          _id: id,
+          estadoAtencion: EstadoAtencion.PENDIENTE,
+          procesandoRealizacion: { $ne: true },
+        },
+        {
+          $set: { procesandoRealizacion: true },
+        },
+        { new: true },
+      )
+      .exec()
+
+    if (!cita) {
+      const existente = await this.citaModel.findById(id).exec()
+
+      if (!existente) {
+        throw new NotFoundException('No se encontró la cita')
+      }
+
+      if (existente.estadoAtencion === EstadoAtencion.REALIZADA) {
+        throw new BadRequestException(
+          'Esta cita ya fue realizada y sus materiales ya fueron descontados',
+        )
+      }
+
+      if (existente.estadoAtencion === EstadoAtencion.CANCELADA) {
+        throw new BadRequestException(
+          'No se puede realizar una cita cancelada',
+        )
+      }
+
+      throw new BadRequestException(
+        'Esta cita ya está siendo procesada',
+      )
+    }
+
+    const descuentosRealizados: {
+      productoId: Types.ObjectId
+      cantidad: number
+    }[] = []
 
     try {
-      await session.withTransaction(async () => {
-        const cita = await this.citaModel
-          .findById(id)
-          .session(session)
-          .exec()
+      // Buscar el servicio y sus productos
+      const servicio: any = await this.serviciosModel
+        .findById(cita.servicio)
+        .populate('materiales.producto')
+        .exec()
 
-        if (!cita) {
-          throw new NotFoundException('No se encontró la cita')
+      if (!servicio) {
+        throw new NotFoundException(
+          'No se encontró el servicio asociado a la cita',
+        )
+      }
+
+      if (servicio.disponible === false) {
+        throw new BadRequestException(
+          'El servicio no está disponible',
+        )
+      }
+
+      const materiales = servicio.materiales || []
+
+      // Agrupar materiales por producto
+      const productosAgrupados = new Map<
+        string,
+        {
+          producto: any
+          cantidad: number
         }
+      >()
 
-        if (cita.estadoAtencion === EstadoAtencion.REALIZADA) {
+      for (const material of materiales) {
+        const producto = material.producto
+        const cantidad = Number(material.cantidad)
+
+        if (!producto || !producto._id) {
           throw new BadRequestException(
-            'Esta cita ya fue realizada y sus materiales ya fueron descontados',
+            'Uno de los productos del servicio ya no existe',
           )
         }
 
-        if (cita.estadoAtencion === EstadoAtencion.CANCELADA) {
+        if (producto.activo === false) {
           throw new BadRequestException(
-            'No se puede realizar una cita cancelada',
+            `El producto ${producto.nombre} está inactivo`,
           )
         }
 
-        const servicio: any = await this.serviciosModel
-          .findById(cita.servicio)
-          .populate('materiales.producto')
-          .session(session)
-          .exec()
-
-        if (!servicio) {
-          throw new NotFoundException(
-            'No se encontró el servicio asociado a la cita',
-          )
-        }
-
-        if (servicio.disponible === false) {
+        if (!Number.isFinite(cantidad) || cantidad <= 0) {
           throw new BadRequestException(
-            'El servicio no está disponible',
+            `La cantidad configurada para ${producto.nombre} no es válida`,
           )
         }
 
-        const materiales = servicio.materiales || []
-        const materialesConsumidos: any[] = []
+        const precioUnitario = Number(producto.precioCompra)
 
-        for (const material of materiales) {
-          const producto = material.producto
-          const cantidad = Number(material.cantidad)
-
-          if (!producto || !producto._id) {
-            throw new BadRequestException(
-              'Uno de los productos del servicio ya no existe',
-            )
-          }
-
-          if (producto.activo === false) {
-            throw new BadRequestException(
-              `El producto ${producto.nombre} está inactivo`,
-            )
-          }
-
-          if (!Number.isFinite(cantidad) || cantidad <= 0) {
-            throw new BadRequestException(
-              `La cantidad configurada para ${producto.nombre} no es válida`,
-            )
-          }
-
-          // Descontar únicamente si hay stock suficiente
-          const actualizacion = await this.productosModel.updateOne(
-            {
-              _id: producto._id,
-              stock: { $gte: cantidad },
-              activo: true,
-            },
-            {
-              $inc: { stock: -cantidad },
-            },
-            { session },
+        if (
+          !Number.isFinite(precioUnitario) ||
+          precioUnitario < 0
+        ) {
+          throw new BadRequestException(
+            `El precio de compra de ${producto.nombre} no es válido`,
           )
+        }
 
-          if (actualizacion.modifiedCount !== 1) {
-            throw new BadRequestException(
-              `Stock insuficiente para el producto ${producto.nombre}`,
-            )
-          }
+        const productoId = producto._id.toString()
+        const existente = productosAgrupados.get(productoId)
 
-          const precioUnitario = Number(producto.precioCompra)
-
-          materialesConsumidos.push({
-            producto: producto._id,
-            nombre: producto.nombre,
-            codigo: producto.codigo,
+        if (existente) {
+          existente.cantidad += cantidad
+        } else {
+          productosAgrupados.set(productoId, {
+            producto,
             cantidad,
-            precioUnitario,
-            costoTotal: cantidad * precioUnitario,
           })
         }
+      }
 
-        // Guardar una copia de los datos económicos del servicio
-        cita.estadoAtencion = EstadoAtencion.REALIZADA
-        cita.fechaRealizacion = new Date()
-        cita.precioCobrado = Number(servicio.precioServicio)
-        cita.monedaCobro = servicio.monedaServicio
-        cita.materialesConsumidos = materialesConsumidos
+      // Validar el stock de todos los productos antes de descontar
+      for (const item of productosAgrupados.values()) {
+        const { producto, cantidad } = item
 
-        await cita.save({ session })
+        if (Number(producto.stock) < cantidad) {
+          throw new BadRequestException(
+            `Stock insuficiente para ${producto.nombre}. Disponible: ${producto.stock}, necesario: ${cantidad}`,
+          )
+        }
+      }
 
-        resultado = cita
+      // Preparar el historial de materiales consumidos
+      const materialesConsumidos = Array.from(
+        productosAgrupados.values(),
+      ).map(({ producto, cantidad }) => {
+        const precioUnitario = Number(producto.precioCompra)
+
+        return {
+          producto: producto._id,
+          nombre: producto.nombre,
+          codigo: producto.codigo,
+          cantidad,
+          precioUnitario,
+          costoTotal: cantidad * precioUnitario,
+        }
       })
 
-      return resultado
-    } finally {
-      await session.endSession()
+      // Validar el precio del servicio
+      const precioServicio = Number(servicio.precioServicio)
+
+      if (
+        !Number.isFinite(precioServicio) ||
+        precioServicio < 0
+      ) {
+        throw new BadRequestException(
+          'El precio del servicio no es válido',
+        )
+      }
+
+      // Descontar cada producto una sola vez
+      for (const [productoId, item] of productosAgrupados.entries()) {
+        const actualizacion = await this.productosModel.updateOne(
+          {
+            _id: productoId,
+            stock: { $gte: item.cantidad },
+            activo: true,
+          },
+          {
+            $inc: { stock: -item.cantidad },
+          },
+        )
+
+        if (actualizacion.modifiedCount !== 1) {
+          throw new BadRequestException(
+            `No se pudo descontar el stock de ${item.producto.nombre}. Comprueba las existencias.`,
+          )
+        }
+
+        descuentosRealizados.push({
+          productoId: item.producto._id,
+          cantidad: item.cantidad,
+        })
+      }
+
+      // Guardar los datos de la realización
+      cita.estadoAtencion = EstadoAtencion.REALIZADA
+      cita.fechaRealizacion = new Date()
+
+      // Se guarda inicialmente el precio del servicio.
+      // Al registrar el pago podrá modificarse por el importe real.
+      cita.precioCobrado = precioServicio
+
+      cita.monedaCobro = servicio.monedaServicio
+      cita.materialesConsumidos = materialesConsumidos
+      cita.procesandoRealizacion = false
+
+      return await cita.save()
+    } catch (error) {
+      // Intentar restaurar los productos descontados
+      let falloReversion = false
+
+      for (const descuento of descuentosRealizados.reverse()) {
+        try {
+          const reversion = await this.productosModel.updateOne(
+            { _id: descuento.productoId },
+            {
+              $inc: { stock: descuento.cantidad },
+            },
+          )
+
+          if (reversion.matchedCount !== 1) {
+            falloReversion = true
+          }
+        } catch {
+          falloReversion = true
+        }
+      }
+
+      // Liberar la cita para permitir un nuevo intento
+      try {
+        await this.citaModel.updateOne(
+          {
+            _id: id,
+            procesandoRealizacion: true,
+            estadoAtencion: EstadoAtencion.PENDIENTE,
+          },
+          {
+            $set: { procesandoRealizacion: false },
+          },
+        )
+      } catch {
+        falloReversion = true
+      }
+
+      if (falloReversion) {
+        throw new InternalServerErrorException(
+          'Ocurrió un error durante la realización y no se pudo completar la recuperación. Revisa manualmente el inventario y el estado de la cita.',
+        )
+      }
+
+      throw error
     }
+  }
+
+  // Registrar el importe realmente cobrado
+  async registrarPago(
+    id: string,
+    precioCobrado: number,
+  ): Promise<Cita> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('El ID de la cita no es válido')
+    }
+
+    if (
+      typeof precioCobrado !== 'number' ||
+      !Number.isFinite(precioCobrado) ||
+      precioCobrado < 0 ||
+      Math.abs(
+        precioCobrado -
+        Math.round(precioCobrado * 100) / 100,
+      ) > 1e-8
+    ) {
+      throw new BadRequestException(
+        'El importe cobrado debe ser un número válido, no negativo y con máximo dos decimales',
+      )
+    }
+
+    // Actualización atómica para evitar pagos duplicados
+    const cita = await this.citaModel
+      .findOneAndUpdate(
+        {
+          _id: id,
+          estadoAtencion: EstadoAtencion.REALIZADA,
+          estadoPago: EstadoPago.PENDIENTE,
+          procesandoRealizacion: { $ne: true },
+        },
+        {
+          $set: {
+            precioCobrado,
+            estadoPago: EstadoPago.PAGADO,
+          },
+        },
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
+      .exec()
+
+    if (cita) {
+      return cita
+    }
+
+    const existente = await this.citaModel.findById(id).exec()
+
+    if (!existente) {
+      throw new NotFoundException('No se encontró la cita')
+    }
+
+    if (existente.estadoAtencion !== EstadoAtencion.REALIZADA) {
+      throw new BadRequestException(
+        'No puedes registrar el pago de un servicio que todavía no se ha realizado',
+      )
+    }
+
+    if (existente.estadoPago === EstadoPago.PAGADO) {
+      throw new BadRequestException(
+        'Esta cita ya tiene un pago registrado',
+      )
+    }
+
+    throw new BadRequestException(
+      'No se puede registrar el pago mientras la cita está siendo procesada',
+    )
   }
 
   // Eliminar una cita
@@ -275,12 +483,24 @@ export class CitaService {
       throw new BadRequestException('El ID de la cita no es válido')
     }
 
-    const deletecit = await this.citaModel
-      .findByIdAndDelete(id)
-      .exec()
+    const cita = await this.citaModel.findById(id).exec()
 
-    if (!deletecit) {
+    if (!cita) {
       throw new NotFoundException('No se encontró la cita')
     }
+
+    if (cita.procesandoRealizacion) {
+      throw new BadRequestException(
+        'No puedes eliminar una cita mientras se está realizando',
+      )
+    }
+
+    if (cita.estadoAtencion === EstadoAtencion.REALIZADA) {
+      throw new BadRequestException(
+        'No puedes eliminar una cita realizada porque contiene un historial de consumo',
+      )
+    }
+
+    await this.citaModel.findByIdAndDelete(id).exec()
   }
 }

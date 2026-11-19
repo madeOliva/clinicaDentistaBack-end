@@ -3,6 +3,7 @@ import { CitaService } from './cita.service';
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { RegistrarPagoDto } from './dto/registrar-pago.dto';
 
 
 @ApiTags('Cita')
@@ -24,6 +25,29 @@ export class CitaController {
   @ApiParam({ name: 'id', description: 'ID de la cita' })
   async realizar(@Param('id') id: string) {
     return this.citaService.realizar(id)
+  }
+
+  @Patch(':id/pagar')
+  @ApiOperation({
+    summary: 'Registrar el pago de una cita realizada',
+  })
+  @ApiParam({ name: 'id', description: 'ID de la cita' })
+  @ApiResponse({
+    status: 200,
+    description: 'Pago registrado correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'La cita no está realizada o ya fue pagada',
+  })
+  registrarPago(
+    @Param('id') id: string,
+    @Body() registrarPagoDto: RegistrarPagoDto,
+  ) {
+    return this.citaService.registrarPago(
+      id,
+      registrarPagoDto.precioCobrado,
+    )
   }
 
 
