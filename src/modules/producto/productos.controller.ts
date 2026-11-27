@@ -7,6 +7,7 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common'
 
 import {
@@ -18,9 +19,15 @@ import {
 import { ProductosService } from './productos.service'
 import { CreateProductoDto } from './dto/create-producto.dto'
 import { UpdateProductoDto } from './dto/update-producto.dto'
+import { RequireModule } from '../auth/decorators/module-permissions.decorator'
+import { Modulo } from '../auth/enums/modulo.enum'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { ModulePermissionsGuard } from '../auth/guards/module-permissions.guard'
 
 @ApiTags('Productos')
 @Controller('productos')
+@UseGuards(JwtAuthGuard, ModulePermissionsGuard)
+@RequireModule(Modulo.PRODUCTOS)
 export class ProductosController {
   constructor(
     private readonly productosService: ProductosService,

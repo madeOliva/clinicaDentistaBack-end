@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common'
 
 import {
@@ -14,9 +15,15 @@ import {
 
 import { ComprasService } from './compras.service'
 import { CreateCompraDto } from './dto/create-compras.dto'
+import { RequireModule } from '../auth/decorators/module-permissions.decorator'
+import { Modulo } from '../auth/enums/modulo.enum'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { ModulePermissionsGuard } from '../auth/guards/module-permissions.guard'
 
 @ApiTags('Compras')
 @Controller('compras')
+@UseGuards(JwtAuthGuard, ModulePermissionsGuard)
+@RequireModule(Modulo.COMPRAS)
 export class ComprasController {
   constructor(
     private readonly comprasService: ComprasService,

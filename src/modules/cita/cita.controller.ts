@@ -1,13 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CitaService } from './cita.service';
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RegistrarPagoDto } from './dto/registrar-pago.dto';
+import { RequireModule } from '../auth/decorators/module-permissions.decorator';
+import { Modulo } from '../auth/enums/modulo.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ModulePermissionsGuard } from '../auth/guards/module-permissions.guard';
 
 
 @ApiTags('Cita')
-@Controller('cita')
+
 export class CitaController {
   constructor(private readonly citaService: CitaService) { }
 

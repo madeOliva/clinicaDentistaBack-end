@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common'
 
 import {
@@ -18,10 +19,16 @@ import { MovimientosService } from './movimientos.service'
 import { CreateMovimientoDto } from './dto/create-movimeintos.dto'
 import { ConsultarMovimientosDto } from './dto/consultar-movimientos.dto'
 import { UpdateMovimientoDto } from './dto/update-movimientos.dto'
+import { RequireModule } from '../auth/decorators/module-permissions.decorator'
+import { Modulo } from '../auth/enums/modulo.enum'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { ModulePermissionsGuard } from '../auth/guards/module-permissions.guard'
 
 
 @ApiTags('Movimientos')
 @Controller('movimientos')
+@UseGuards(JwtAuthGuard, ModulePermissionsGuard)
+@RequireModule(Modulo.MOVIMIENTOS)
 export class MovimientosController {
   constructor(
     private readonly movimientosService: MovimientosService,

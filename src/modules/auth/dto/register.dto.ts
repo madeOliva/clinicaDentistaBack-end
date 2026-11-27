@@ -1,24 +1,52 @@
-import { IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import {
+  ArrayUnique,
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '../enums/role.enum';
+import { Modulo } from '../enums/modulo.enum';
 
 export class RegisterDto {
-  @ApiProperty({ example: 'José Pérez' })
+  @ApiProperty({ example: 'usuario01' })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
   nombre: string;
 
   @ApiProperty({ example: '+51 999 888 777' })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsString()
-  @Matches(/^[0-9+\s-]+$/, { message: 'El teléfono solo debe contener números' })
+  @IsNotEmpty()
+  @Matches(/^[0-9+\s-]+$/, {
+    message: 'El teléfono solo debe contener números',
+  })
   telefono: string;
 
-  @ApiProperty({ example: 'password123', minLength: 6 })
+  @ApiProperty({ example: 'UnaClaveSegura123', minLength: 8 })
   @IsString()
-  @MinLength(6)
+  @IsNotEmpty()
+  @MinLength(8)
   password: string;
 
-  @ApiPropertyOptional({ enum: Role, default: Role.USER })
+  @ApiPropertyOptional({
+    enum: Modulo,
+    isArray: true,
+    example: [Modulo.DASHBOARD, Modulo.CLIENTES, Modulo.CITAS],
+  })
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  @IsArray()
+  @ArrayUnique()
+  @IsEnum(Modulo, { each: true })
+  permisos?: Modulo[];
 }

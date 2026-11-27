@@ -31,13 +31,22 @@ async function bootstrap() {
 
   // Configuracion del swagger
   const config = new DocumentBuilder()
-    .setTitle('Dentista')
-    .setDescription('API clinicaDentista')
+    .setTitle('API Clínica')
+    .setDescription('API del sistema')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
 }

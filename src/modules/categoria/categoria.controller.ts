@@ -6,14 +6,21 @@ import {
   Delete,
   Param,
   Body,
+  UseGuards,
 } from '@nestjs/common'
 
 import { CategoriasService } from './categoria.service'
 
 import { CreateCategoriaDto } from './dto/create-categoria.dto'
 import { UpdateCategoriaDto } from './dto/update-categoria.dto'
+import { Modulo } from '../auth/enums/modulo.enum'
+import { RequireModule } from '../auth/decorators/module-permissions.decorator'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { ModulePermissionsGuard } from '../auth/guards/module-permissions.guard'
 
 @Controller('categorias')
+@UseGuards(JwtAuthGuard, ModulePermissionsGuard)
+@RequireModule(Modulo.CATEGORIAS)
 export class CategoriasController {
   constructor(
     private readonly categoriasService: CategoriasService,

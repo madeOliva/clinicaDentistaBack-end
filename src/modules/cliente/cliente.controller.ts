@@ -1,13 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ClienteService } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { CiParamDto } from './dto/ci-param.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { RequireModule } from '../auth/decorators/module-permissions.decorator';
+import { Modulo } from '../auth/enums/modulo.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ModulePermissionsGuard } from '../auth/guards/module-permissions.guard';
 
 
 @ApiTags('Cliente')
 @Controller('cliente')
+@UseGuards(JwtAuthGuard, ModulePermissionsGuard)
+@RequireModule(Modulo.CLIENTES)
 export class ClienteController {
   constructor(private readonly clienteService: ClienteService) { }
 

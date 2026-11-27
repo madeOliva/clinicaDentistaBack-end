@@ -1,12 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { MonedaService } from './moneda.service';
 import { CreateMonedaDto } from './dto/create-moneda.dto';
 import { UpdateMonedaDto } from './dto/update-moneda.dto';
 import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
+import { RequireModule } from '../auth/decorators/module-permissions.decorator';
+import { Modulo } from '../auth/enums/modulo.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ModulePermissionsGuard } from '../auth/guards/module-permissions.guard';
 
 
 @ApiTags('Moneda')
 @Controller('moneda')
+@UseGuards(JwtAuthGuard, ModulePermissionsGuard)
+@RequireModule(Modulo.MONEDAS)
 export class MonedaController {
   constructor(private readonly monedaService: MonedaService) { }
 

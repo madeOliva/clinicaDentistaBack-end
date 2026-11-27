@@ -1,0 +1,15 @@
+export enum Modulo {
+  DASHBOARD = 'dashboard',
+  FINANZAS = 'finanzas',
+  SERVICIOS = 'servicios',
+  CLIENTES = 'clientes',
+  CITAS = 'citas',
+  USUARIOS = 'usuarios',
+  PRODUCTOS = 'productos',
+  COMPRAS = 'compras',
+  MOVIMIENTOS = 'movimientos',
+  MONEDAS = 'monedas',
+  NOMENCLADOR = 'nomenclador',
+  CATEGORIAS = 'categorias',
+  CONFIGURACION = 'configuracion',
+}
